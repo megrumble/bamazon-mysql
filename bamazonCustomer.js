@@ -93,6 +93,10 @@ function addToCart() {
         choices: ["Buy now?", "Add to cart?"]
     }]).then(function (answer) {
         console.log(answer);
+        if (answer.item === ["Buy now?"]) {
+            console.log("Checkout");
+            console.log("Your total is " + amountOwed);
+        }
     })
 
 }
