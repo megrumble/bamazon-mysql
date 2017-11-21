@@ -38,7 +38,7 @@ function readProducts() {
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
         //log all results of SELECT statement
-        console.log(res);
+        // console.log(res);
         displayTable(res);
     })
 }
@@ -57,30 +57,42 @@ function makeOrder() {
         }
     ]).then(function (answer) {
         console.log(answer);
-        connection.query("SELECT FROM products WHERE item_id = ?", [{
+
+        connection.query("SELECT * FROM products WHERE ?", [{
                 item_id: answer.item
             }],
             function (err, res) {
-                var chosenItem = res[item_id];
-                console.log(chosenItem);
-                if (answer.quantity > chosenItem.stock_quantity) {
+                if (err) throw err;
+                console.log(res[0]);
+                if (answer.quantity > res[0].stock_quantity) {
                     console.log("Insufficient quantity. Your order cannot be placed.");
                     nextOrder();
                 } else {
-                    amountOwed = answer.quantity * chosenItem.price;
+                    amountOwed = answer.quantity * res[0].price;
                     console.log("You owe $" + amountOwed);
-                    updateInventory();
+                    addToCart();
+
+                    connection.query("UPDATE products SET ? WHERE ?", [{
+                        stock_quantity: res[0].stock_quantity - answer.quantity
+                    }, {
+                        item_id: answer.item
+                    }], function (err, res) {
+                        // readProducts()
+                    });
+
                 }
             })
     })
 };
 
-function updateInventory() {
-    connection.query("UPDATE products SET ? WHERE ?", [{
-        stock_quantity: res[0].stock_quantity - answer.quantity
-    }, {
-        item_id: answer.item
-    }], function (err, res) {
-        displayTable()
+function addToCart() {
+    inquirer.prompt([{
+        name: "item",
+        type: "checkbox",
+        message: "Would you like to",
+        choices: ["Buy now?", "Add to cart?"]
+    }]).then(function (answer) {
+        console.log(answer);
     })
+
 }
